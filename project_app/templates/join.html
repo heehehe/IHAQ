@@ -52,10 +52,9 @@
 				dataType: 'json',
 			
 				success: function (response_result){
-					//alert(response_result.result);
+					alert(response_result.result);
 					
 					if(response_result.result == 'true'){
-						alert("Please Rewrite ID");
 						$("#id_check_result").html("중복");
 						$("#id_check_result").css({
 							'color' : 'red',
@@ -63,7 +62,6 @@
 						id_validation = 'false';
 					}
 					else if(response_result.result == 'false'){
-						alert("ID Validation Success");
 						$("#id_check_result").html("사용가능");
 						$("#id_check_result").css({
 							'color' : 'green',

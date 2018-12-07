@@ -9,7 +9,7 @@ https://docs.djangoproject.com/en/2.0/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/2.0/ref/settings/
 """
-  
+
 import os
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
@@ -78,6 +78,7 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+        #'NAME': 'C:/Users/user/Desktop/Django/db/db.sqlite3',
     }
 }
 
@@ -140,11 +141,3 @@ SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 SESSION_COOKIE_AGE = 1200
 # 사용자가 새로운 REQUEST를 보낼 때 마다 세션 생명을 갱신할지
 SESSION_SAVE_EVERY_REQUEST = True
-
-
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'smtp.gmail.com'
-EMAIL_PORT = 587
-EMAIL_HOST_USER = 'tlsjh082@gmail.com'
-EMAIL_HOST_PASSWORD = 'zpcudumyvkzxytfe'
-EMAIL_USE_TLS = True

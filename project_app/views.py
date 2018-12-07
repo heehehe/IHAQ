@@ -6,15 +6,10 @@ from datetime import datetime
 from django.core.files.storage import FileSystemStorage
 from django.shortcuts import redirect
 import random, string
-from django.core.mail import send_mail
-from django.conf import settings
-from django.core.mail import EmailMessage
-import smtplib
-from email.mime.text import MIMEText
-from django.template import loader
-
+from .forms import ClassNodeForm
 
 # Create your views here.
+
 def index(request) :
 
 	pdfs = PDF.objects.filter(class_id = 'A')
@@ -158,6 +153,12 @@ def joinClass(request) :
 	# PDF 등록
 	if request.method == 'POST':
 		class_id = request.POST.get('class_id_text', False)
+		user_id = request.session.get('user_id', 'unknown')
+		user_name = request.session.get('user_name', 'unknown')
+		
+		member = Member.objects.get(user_name = user_name, user_id = user_id)
+
+		classnode = ClassNode.objects.get(class_id = class_id)
 
 		for pdf in request.FILES.getlist('upload[]'):
 			#print(pdf)
@@ -178,7 +179,7 @@ def joinClass(request) :
 
 		pdfs = PDF.objects.filter(class_id = class_id)
 
-		context = { 'pdfs' : pdfs }
+		context = { 'pdfs' : pdfs, 'member' : member, 'classnode' : classnode }
 
 		"""
 		file_get = request.POST.get('upload', False)
@@ -632,6 +633,8 @@ def delete_pdf(request) :
 		result = { "result" : "success" }
 
 		return JsonResponse(result)
+
+
 def password_change(request) :
 	return render(request, './password_change.html')
 
@@ -690,3 +693,58 @@ def psw_changed_success(request):
 		member.save()
 		return render(request, './psw_changed_success.html')
  
+def mypage(request):
+ 	user_id = request.session.get('user_id', False)
+ 	myself = Member.objects.filter(user_id = user_id)
+ 	classMake_check = ClassNode.objects.filter(founder_id = user_id)
+ 	classConnect_check = Member.objects.filter(user_id = user_id).values('in_class_list')
+
+ 	con_list = []
+ 	for item in classConnect_check[0]['in_class_list'].split(','):
+ 		if '[' in item :
+ 			item = item.replace('[', '')
+ 		if '\'' in item :
+ 			item = item.replace('\'', '')
+ 		if ']' in item :
+ 			item = item.replace(']', '')
+ 		con_list.append(item.strip())
+	
+ 	classConnect_len = len(con_list)
+ 	classMake_count = classMake_check.count()
+
+ 	classimages1 = ClassNode.objects.filter(founder_id = 'default')
+ 	classimages2 = ClassNode.objects.filter(founder_id = 'default')
+ 	classimages3 = ClassNode.objects.filter(founder_id = 'default')
+ 	classimages4 = ClassNode.objects.filter(founder_id = 'default')
+
+ 	if classMake_count > 1:
+ 		classimages1 = ClassNode.objects.filter(founder_id = user_id)[classMake_check.count()-2:classMake_check.count()-1]
+ 		classimages2 = ClassNode.objects.filter(founder_id = user_id)[classMake_check.count()-1:classMake_check.count()]
+ 	if classMake_count == 1:
+ 		classimages1 = ClassNode.objects.filter(founder_id = user_id)[classMake_check.count()-1:classMake_check.count()]
+
+ 	if classConnect_len > 0 and len(con_list[0]) > 0:
+ 		classimages3 = ClassNode.objects.filter(class_id = con_list[len(con_list)-2])
+ 		if classConnect_len > 1:
+ 			classimages4 = ClassNode.objects.filter(class_id = con_list[len(con_list)-1])
+		
+ 	return render(request, 'my_page.html', {
+ 		'myself' : myself , 'classimages1' : classimages1, 'classimages2' : classimages2,
+ 		'classimages3' : classimages3, 'classimages4' : classimages4,
+ 	})			
+	
+def upload_class(request):
+ 	user_id = request.session.get('user_id', False)
+ 	myself = Member.objects.filter(user_id = user_id)
+
+ 	if request.method == 'POST':
+ 		form = ClassNodeForm(request.POST, request.FILES)
+ 		class_id = request.POST.get("class_id",None)
+ 		if form.is_valid():
+ 			form.save()
+ 			return redirect('../' + "joinClass/" + class_id)
+ 	else:
+ 		form = ClassNodeForm()
+ 		return render(request, 'upload_class.html', {
+ 		'form':form, 'myself' : myself
+ 		})	
